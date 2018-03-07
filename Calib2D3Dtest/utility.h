@@ -100,7 +100,6 @@ void writePlyHeader(ofstream& ofs,int vertSize,int faceSize);
 void writePlyHeaderRGB(ofstream& ofs,int vertSize,int faceSize);
 void writePlyOnePointRGB(ofstream& ofs,Vector3f& p,unsigned char* rgba);
 
-void FAROColorPtx2Ply(string in_ptxFn, string out_plyFn);
 
 void timeSequencePtx2ply(string in_ptxFn,string out_plyFn);
 
@@ -113,13 +112,11 @@ void rgba2int(int& color,unsigned char r,unsigned char g,unsigned char b,unsigne
 int getSubpixelColor(int topLeftColor,int topRightColor,int bottomLeftColor,int bottomRightColor,double dx,double dy);
 void getSubpixelColor(unsigned char* topLeftColor,unsigned char* topRightColor,unsigned char* bottomLeftColor,unsigned char* bottomRightColor,double dx,double dy,unsigned char* rgb);
 
-double getSubPixelValueFloat();
-
-double miComputing(double* histogram,int width,int height);
-double miComputing(double* histogram,int width,int height,int start);
+//double miComputing(double* histogram,int width,int height);
+//double miComputing(double* histogram,int width,int height,int start);
 
 //
-Matrix4d readVannoPara(string fileName);
+//Matrix4d readVannoPara(string fileName);
 Matrix4d readCPara(string fileName);
 
 bool makeFolder(string folderPath);

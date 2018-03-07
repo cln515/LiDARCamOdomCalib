@@ -356,51 +356,7 @@ Matrix4d getMatrixFlomPly(string fn){
 	return globalPose;
 }
 
-double miComputing(double* histogram,int width,int height){
 
-
-
-	return miComputing(histogram,width,height,0);
-
-
-
-};
-double miComputing(double* histogram,int width,int height,int offset){
-	double* histf=(double*)malloc(sizeof(double)*width);
-	double* histr=(double*)malloc(sizeof(double)*height);
-	double N=0;
-	for(int i=0;i<width;i++)histf[i]=0;
-	for(int i=0;i<height;i++)histr[i]=0;
-		for(int i=0;i<width;i++){
-			for(int j=0;j<height;j++){
-				histf[i]+=histogram[i*height+j+offset];
-				histr[j]+=histogram[i*height+j+offset];
-				N+=histogram[i*height+j+offset];
-			}
-		}
-//		int starta=0;
-//		int enda=pointNum;
-//		int N=enda-starta;
-//				cout<<N<<endl;
-		if(N==0)return 0;
-		double sum=0;
-		double loge2=log(2);
-		for(int i=0;i<width;i++){
-			for(int j=0;j<height;j++){
-				if(histogram[i*height+j+offset]>0)
-					sum+=histogram[i*height+j+offset]*log(N*histogram[i*height+j+offset]/(histf[i]*histr[j]));
-//						cout<<sum<<endl;				
-			}
-		}		
-		
-		sum/=loge2*N;
-//		double mi=log(min(nf,nr))/loge2-sum;
-//				for(int i=0;i<6;i++)free(d_histfr[i]);
-		free(histf);
-		free(histr);
-		return sum;
-
-};
 
 void writePlyHeader(ofstream& ofs,int vertSize,int faceSize){
 	ofs<<"ply"<<endl
