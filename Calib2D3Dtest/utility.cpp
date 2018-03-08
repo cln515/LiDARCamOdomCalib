@@ -95,9 +95,6 @@ Matrix3d axisRot2R(double rx,double ry,double rz){
 	Matrix4d R,rotx,roty,rotz;
 	double sinv,cosv;
 	sinv=sin(rx),cosv=cos(rx);
-
-
-
 			rotx<<1,0,0,0,0,cosv,-sinv,0,0,sinv,cosv,0,0,0,0,1;
 			sinv=sin(ry);cosv=cos(ry);
 			roty<<cosv,0,sinv,0,0,1,0,0,-sinv,0,cosv,0,0,0,0,1;
@@ -106,20 +103,6 @@ Matrix3d axisRot2R(double rx,double ry,double rz){
 			R=rotx*roty*rotz;
 			Matrix3d retMat=R.block(0,0,3,3);
 			return retMat;
-}
-
-Matrix3d ladybug_rot2xyz (double rph[3])
-{
-    double sr, sp, sh, cr, cp, ch;
-	sr=sin(rph[0]);cr=cos(rph[0]);
-	sp=sin(rph[1]);cp=cos(rph[1]);
-	sh=sin(rph[2]);ch=cos(rph[2]);
-
-	Matrix3d R;
-	R<<  ch*cp, -sh*cr + ch*sp*sr,  sh*sr + ch*sp*cr,
-                             sh*cp,  ch*cr + sh*sp*sr, -ch*sr + sh*sp*cr,
-                            -sp,     cp*sr,             cp*cr             ;
-	return R;
 }
 
 void R2axisRot(Matrix3d R,double& rx,double& ry,double& rz){
@@ -181,7 +164,6 @@ int getSubpixelColor(int topLeftColor,int topRightColor,int bottomLeftColor,int 
 
 void getSubpixelColor(unsigned char* topLeftColor,unsigned char* topRightColor,unsigned char* bottomLeftColor,unsigned char* bottomRightColor,double dx,double dy,unsigned char* rgb){
 	unsigned char rs[4],gs[4],bs[4],as[4];
-//	unsigned char r,g,b,a;
 	rgb[0]=topLeftColor[0]*(1-dx)*(1-dy)+topRightColor[0]*dx*(1-dy)+bottomLeftColor[0]*(1-dx)*(dy)+bottomRightColor[0]*dx*dy;
 	rgb[1]=topLeftColor[1]*(1-dx)*(1-dy)+topRightColor[1]*dx*(1-dy)+bottomLeftColor[1]*(1-dx)*(dy)+bottomRightColor[1]*dx*dy;
 	rgb[2]=topLeftColor[2]*(1-dx)*(1-dy)+topRightColor[2]*dx*(1-dy)+bottomLeftColor[2]*(1-dx)*(dy)+bottomRightColor[2]*dx*dy;
@@ -189,144 +171,6 @@ void getSubpixelColor(unsigned char* topLeftColor,unsigned char* topRightColor,u
 
 }
 
-void FAROColorPtx2ply(string in_ptxFn, string out_plyFn) {
-	ifstream ifs(in_ptxFn, ios::binary);
-	string line_str;
-	unsigned int* lineStartIdx = (unsigned int*)malloc(sizeof(int) * 3000);
-	unsigned int* idxpointer = lineStartIdx;
-	getline(ifs, line_str);
-	int line = stoi(line_str);
-	getline(ifs, line_str);
-	int oneLine = stoi(line_str);
-	for (int i = 0;i<8;i++) {
-		getline(ifs, line_str);
-	}
-	vector<float> vert;
-
-
-	int lineNum = 0, vertCnt = 0;
-
-	lineStartIdx[lineNum] = vert.size() / 3;
-	float thresMax = 120 * 120;
-	float thresMin = 2 * 2;
-	POINT_3D* arrayPoint = (POINT_3D*)malloc(sizeof(POINT_3D)*line*oneLine);
-	float* reflectanceArray = (float*)malloc(sizeof(float)*line*oneLine);
-	unsigned char* colorArray = (unsigned char*)malloc(sizeof(unsigned char)*3*line*oneLine);
-
-	while (getline(ifs, line_str)) {
-		float x, y, z;
-		float f[5];
-		unsigned char rgb[4];
-		for (int i = 0;i<7;i++) {
-			if (i < 4)f[i] = stof(line_str.substr(0, line_str.find_first_of(" ")));
-			else if (i < 6) {
-				rgb[i - 4] = (unsigned char)(stoi(line_str.substr(0, line_str.find_first_of(" "))));
-			}
-			else rgb[i - 4] = (unsigned char)(stoi(line_str));
-			line_str.erase(0, line_str.find_first_of(" ") + 1);
-		}
-
-		arrayPoint[vertCnt].x = f[0];
-		arrayPoint[vertCnt].y = f[1];
-		arrayPoint[vertCnt].z = f[2];
-		reflectanceArray[vertCnt] = f[4];//scan48:4
-		vertCnt++;
-	}
-	vector<float> refVect;
-	vector<unsigned int>vertIdx;
-	for (int i = 0;i<line;i++) {
-		lineStartIdx[i] = vert.size() / 3;
-		cout << "line:" << i << " start:" << lineStartIdx[i] << endl;
-		for (int j = 0;j<oneLine;j++) {
-			int idx = i*oneLine + j;
-			float r2 = arrayPoint[idx].x*arrayPoint[idx].x + arrayPoint[idx].y*arrayPoint[idx].y + arrayPoint[idx].z*arrayPoint[idx].z;
-			if (r2>thresMax || r2<thresMin || reflectanceArray[idx]<0.01)continue;
-			vert.push_back(arrayPoint[idx].x);
-			vert.push_back(arrayPoint[idx].y);
-			vert.push_back(arrayPoint[idx].z);
-			vertIdx.push_back(idx);//多分ここバグ
-			refVect.push_back(reflectanceArray[idx]);
-		}
-	}
-	int vertexNum = vert.size() / 3;
-	float* vertex = (float*)malloc(sizeof(float)*vert.size());
-	for (int i = 0;i<vert.size();i++) {
-		vertex[i] = vert.at(i);
-	}
-	unsigned int* vertexIdx = (unsigned int*)malloc(sizeof(unsigned int)*vertIdx.size());
-
-	vert.clear();
-	free(reflectanceArray);
-	free(arrayPoint);
-
-}
-
-void timeSequencePtx2ply(string in_ptxFn,string out_plyFn){
-	ifstream ifs(in_ptxFn,ios::binary);
-	string line_str;
-	unsigned int* lineStartIdx=(unsigned int*)malloc(sizeof(int)*3000);
-	unsigned int* idxpointer=lineStartIdx;
-	getline(ifs,line_str);
-	int line=stoi(line_str);
-	getline(ifs,line_str);
-	int oneLine=stoi(line_str);
-	for(int i=0;i<8;i++){
-	getline(ifs,line_str);
-	}
-	vector<float> vert;
-	
-
-	int lineNum=0,vertCnt=0;
-
-	lineStartIdx[lineNum]=vert.size()/3;
-	float thresMax=120*120;
-	float thresMin=2*2;
-	POINT_3D* arrayPoint=(POINT_3D*)malloc(sizeof(POINT_3D)*line*oneLine);
-	float* reflectanceArray=(float*)malloc(sizeof(float)*line*oneLine);
-
-	while(getline(ifs,line_str)){
-		float x,y,z;
-		float f[5];
-		for(int i=0;i<5;i++){
-			if(i!=4)f[i]=stof(line_str.substr(0,line_str.find_first_of(" ")));
-			else f[i]=stof(line_str);
-			line_str.erase(0,line_str.find_first_of(" ")+1);
-		}
-
-		arrayPoint[vertCnt].x=f[0];
-		arrayPoint[vertCnt].y=f[1];
-		arrayPoint[vertCnt].z=f[2];
-		reflectanceArray[vertCnt]=f[4];//scan48:4
-		vertCnt++;
-	}
-	vector<float> refVect;
-	vector<unsigned int>vertIdx;
-	for(int i=0;i<line;i++){
-			lineStartIdx[i]=vert.size()/3;
-			cout<<"line:"<<i<<" start:"<<lineStartIdx[i]<<endl;
-		for(int j=0;j<oneLine;j++){
-			int idx=i*oneLine+j;
-			float r2=arrayPoint[idx].x*arrayPoint[idx].x+arrayPoint[idx].y*arrayPoint[idx].y+arrayPoint[idx].z*arrayPoint[idx].z;
-			if(r2>thresMax||r2<thresMin||reflectanceArray[idx]<0.01)continue;
-			vert.push_back(arrayPoint[idx].x);
-			vert.push_back(arrayPoint[idx].y);
-			vert.push_back(arrayPoint[idx].z);
-			vertIdx.push_back(idx);//多分ここバグ
-			refVect.push_back(reflectanceArray[idx]);
-		}
-	}
-	int vertexNum=vert.size()/3;
-	float* vertex=(float*)malloc(sizeof(float)*vert.size());
-	for(int i=0;i<vert.size();i++){
-		vertex[i]=vert.at(i);
-	}
-	unsigned int* vertexIdx=(unsigned int*)malloc(sizeof(unsigned int)*vertIdx.size());
-	
-	vert.clear();
-	free(reflectanceArray);
-	free(arrayPoint);
-
-}
 
 Matrix4d getMatrixFlomPly(string fn){
 	ifstream ifs(fn,ios::binary);
@@ -334,8 +178,6 @@ Matrix4d getMatrixFlomPly(string fn){
 	Matrix4d globalPose=Matrix4d::Identity();
 	int n=0;
 	while(getline(ifs,line)){
-//		ofs<<line<<endl;
-		cout<<line<<endl;
 		if(headString(line,"matrix")){
 			float f[4];
 			int i;
@@ -357,106 +199,12 @@ Matrix4d getMatrixFlomPly(string fn){
 }
 
 
-
-void writePlyHeader(ofstream& ofs,int vertSize,int faceSize){
-	ofs<<"ply"<<endl
-	<<"format binary_little_endian 1.0"<<endl
-	<<"element vertex "<<vertSize<<endl
-	<<"property float x"<<endl
-	<<"property float y"<<endl
-	<<"property float z"<<endl
-	<<"property float confidence"<<endl
-	<<"property float intensity"<<endl
-	<<"element face "<<faceSize<<endl
-	<<"property list uchar int vertex_index"<<endl
-	<<"end_header"<<endl;
-}
-
-void writePlyHeaderRGB(ofstream& ofs,int vertSize,int faceSize){
-	ofs<<"ply"<<endl
-	<<"format binary_little_endian 1.0"<<endl
-	<<"element vertex "<<vertSize<<endl
-	<<"property float x"<<endl
-	<<"property float y"<<endl
-	<<"property float z"<<endl
-	<<"property float confidence"<<endl
-	<<"property uchar red"<<endl
-	<<"property uchar green"<<endl
-	<<"property uchar blue"<<endl
-	<<"property uchar alpha"<<endl
-	<<"element face "<<faceSize<<endl
-	<<"property list uchar int vertex_index"<<endl
-	<<"end_header"<<endl;
-}
-
-void writePlyOnePointRGB(ofstream& ofs,Vector3f& p,unsigned char* rgba){
-	float xyz[]={p(0),p(1),p(2)};
-	ofs.write((char*) xyz,sizeof(float)*3);
-	float conf=1.0;
-	ofs.write((char*)&conf,sizeof(float));
-	ofs.write((char*)rgba,sizeof(unsigned char)*4);
-
-}
-
-//p_3d=M*p_2d: cam->3D scanner translation
-Matrix4d readVannoPara(string fileName){
-					ifstream ifs(fileName,ios::binary);
-					string line;	
-					int n=0;
-					getline(ifs,line);//"Camera position"
-					getline(ifs,line);
-					float position[3];
-					for(int i=0;i<3;i++){
-						if(i!=2)position[i]=stof(line.substr(0,line.find_first_of(" ")));
-						else position[i]=stof(line);
-						line.erase(0,line.find_first_of(" ")+1);
-					}
-					getline(ifs,line);//"Camera pose"
-					getline(ifs,line);
-					float pose[4];
-					for(int i=0;i<4;i++){
-						if(i!=3)pose[i]=stof(line.substr(0,line.find_first_of(" ")));
-						else pose[i]=stof(line);
-						line.erase(0,line.find_first_of(" ")+1);
-					}
-					ifs.close();
-					Matrix4d P;
-
-					float q3=pose[0],
-					q0=pose[1],
-					q1=pose[2],
-					q2=pose[3];
-					//阪野さんのcparaファイルはおそらくladybugの座標が正しい定義よりz軸回りに180°回転した定義になってる
-					P<<-(1-2.0*(q1*q1+q2*q2)),
-						-2*(q0*q1+q2*q3),
-						2*(q2*q0-q1*q3),
-						position[0],
-
-					-2*(q0*q1-q2*q3),
-					-(1.0-2.0*(q2*q2+q0*q0)),
-					2*(q1*q2+q0*q3),
-					position[1],
-
-					-2*(q2*q0+q1*q3),
-					-2*(q1*q2-q0*q3),
-					1.0-2.0*(q1*q1+q0*q0),
-					position[2],
-
-					0,0,0,1;
-
-
-//					Matrix4d rot180;
-//					rot180<<-1,0,0,0,0,-1,0,0,0,0,1,0,0,0,0,1;
-
-	return P;
-}
-
 //p_3d=M*p_2d: cam->3D scanner translation
 Matrix4d readCPara(string fileName){
 					ifstream ifs(fileName,ios::binary);
 					string line;	
 					int n=0;
-					getline(ifs,line);//"Camera position"
+					getline(ifs,line);
 					getline(ifs,line);
 					float position[3];
 					for(int i=0;i<3;i++){
@@ -464,7 +212,7 @@ Matrix4d readCPara(string fileName){
 						else position[i]=stof(line);
 						line.erase(0,line.find_first_of(" ")+1);
 					}
-					getline(ifs,line);//"Camera pose"
+					getline(ifs,line);
 					getline(ifs,line);
 					float pose[4];
 					for(int i=0;i<4;i++){
@@ -480,30 +228,6 @@ Matrix4d readCPara(string fileName){
 					P.block(0,3,3,1)<<position[0],position[1],position[2];
 					P.block(3,0,1,4)<<0,0,0,1;
 
-			/*		float q3=pose[0],
-					q0=pose[1],
-					q1=pose[2],
-					q2=pose[3];
-					P<<-(1-2.0*(q1*q1+q2*q2)),
-						-2*(q0*q1+q2*q3),
-						2*(q2*q0-q1*q3),
-						position[0],
-
-					-2*(q0*q1-q2*q3),
-					-(1.0-2.0*(q2*q2+q0*q0)),
-					2*(q1*q2+q0*q3),
-					position[1],
-
-					-2*(q2*q0+q1*q3),
-					-2*(q1*q2-q0*q3),
-					1.0-2.0*(q1*q1+q0*q0),
-					position[2],
-
-					0,0,0,1;
-
-
-					Matrix4d rot180;
-					rot180<<-1,0,0,0,0,-1,0,0,0,0,1,0,0,0,0,1;*/
 
 	return P;
 }

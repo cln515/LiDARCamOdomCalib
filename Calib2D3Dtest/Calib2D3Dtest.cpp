@@ -95,8 +95,7 @@ void solvet_non_lin(vector<Matrix4d> pepdMat, vector<Matrix4d> holdMat, Matrix3d
 	t << opt[0], opt[1], opt[2];
 }
 
-void solvelin2(vector<Matrix4d>& pepdMat, vector<Matrix4d> holdMat, Matrix3d R, Vector3d& t) {
-	//solve least square problem
+void solvetlin(vector<Matrix4d>& pepdMat, vector<Matrix4d> holdMat, Matrix3d R, Vector3d& t) {
 	MatrixXd A(pepdMat.size() * 3, 3+ pepdMat.size());
 	A.setZero();
 	VectorXd B(pepdMat.size() * 3);
@@ -121,44 +120,6 @@ void solvelin2(vector<Matrix4d>& pepdMat, vector<Matrix4d> holdMat, Matrix3d R, 
 	t << ans(0), ans(1), ans(2);
 
 }
-//
-//struct energyFunc {
-//public:
-//	energyFunc(Vector3d& v1_,Vector3d& v2_) {
-//		v1 = v1_;
-//		v2 = v2_;
-//	}
-//	bool operator()(const double* parameters, double* residual)const {
-//		double rx = parameters[0];
-//		double ry = parameters[1];
-//		double rz = parameters[2];
-//		double x = parameters[3];
-//		double y = parameters[4];
-//		double z = parameters[5];
-//		Matrix3d R,E;
-//		Vector3d c1,v2, c2, c21;
-//		c1 << 0, 0, 0;
-//		R = axisRot2R(rx, ry, rz).inverse();
-//		c2 << x, y, z;
-//		c21 = c1 - c2;
-//
-//		Matrix3d tx;
-//		tx << 0, -c21(2), c21(1),
-//			c21(2), 0, -c21(0),
-//			-c21(1),c21(0),0;
-//		E=tx*R;
-//		Vector3d Ev = E*v1;
-//		double l = Ev.norm();
-//		residual[0] = (v2.transpose()*Ev);
-//		residual[0] = residual[0] / l;
-//		return true;
-//	}
-//
-//private:
-//	Vector3d v1,v2;
-//
-//
-//};
 
 
 void mat2axis_angle(Matrix3d m,  Vector3d& retv, double& angle) {
@@ -190,7 +151,7 @@ void solverot(vector<Matrix4d> pepdMat, vector<Matrix4d> holdMat, Matrix3d& R) {
 			Matrix3d R = axisRot2R(rx, ry, rz);
 			Vector3d plot = (R.transpose()*p3d).normalized();
 
-			residual[0] = eyeDirec.cross(plot).norm();//eyeDirec.cross(plot).norm();
+			residual[0] = eyeDirec.cross(plot).norm();
 			return true;
 		}
 	private:
@@ -214,7 +175,7 @@ void solverot(vector<Matrix4d> pepdMat, vector<Matrix4d> holdMat, Matrix3d& R) {
 			Matrix3d R = axisRot2R(rx, ry, rz);
 			Matrix3d err = RA*R-R*RB;
 
-			residual[0] = err.norm();//eyeDirec.cross(plot).norm();
+			residual[0] = err.norm();
 			return true;
 		}
 	private:
@@ -232,11 +193,6 @@ void solverot(vector<Matrix4d> pepdMat, vector<Matrix4d> holdMat, Matrix3d& R) {
 		Vector3d holax; mat2axis_angle(holdMat.at(i).block(0, 0, 3, 3), holax, angle2);
 		KA.col(i) = pepax;
 		KB.col(i) = holax;
-		std::cout << pepax << std::endl;
-		std::cout << angle1 << endl;
-		std::cout << holax << std::endl << std::endl;
-		std::cout << angle2 << endl<<endl;
-		//axisAlignCostFunc* p = new axisAlignCostFunc(pepax, holax);
 		Matrix3d RA = pepdMat.at(i).block(0, 0, 3, 3);
 		Matrix3d RB = holdMat.at(i).block(0, 0, 3, 3);
 		rotErrCostFunc* p= new rotErrCostFunc(RA, RB);
@@ -404,7 +360,6 @@ int main(int argc,char* argv[])
 			keypoints.push_back(keypoint);
 			descriptors.push_back(descriptor);
 		}
-		//motionNumber = imgs.size() - 1;
 		cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create("BruteForce");
 		std::vector<cv::DMatch> match12, match13, match34, match12_, match13_, match_;
 		cout << "camera pose estimation" << endl;
@@ -444,21 +399,6 @@ int main(int argc,char* argv[])
 				cameraPoseRelEst_non_lin(in_bvs1, in_bvs2, mot, thres / 2);
 				thres = thres*0.8;
 			}
-
-
-
-			//gt
-			Matrix4d gtA;
-			Matrix4d estA = _6dof2m(mot);
-			gtA = gt * lidarPos.at(mbase).inverse() * lidarPos.at(mdst) * gt.inverse();
-			_6dof gtAmot = m2_6dof(gtA);
-
-
-			double anglea, angleb;
-			Vector3d axisa,axisb;
-			mat2axis_angle(gtA.block(0, 0, 3, 3), axisa, anglea);
-			mat2axis_angle(estA.block(0, 0, 3, 3), axisb, angleb);
-
 			amots.push_back(mot);
 		}
 		cout << "initial calibration parameter computation" << endl;
@@ -471,7 +411,7 @@ int main(int argc,char* argv[])
 		}
 		//solving
 		solverot(Ma_array, Mb_array, R);
-		solvelin2(Ma_array, Mb_array, R, t);
+		solvetlin(Ma_array, Mb_array, R, t);
 		cout << "initial rotation" << endl;
 	cout << R << endl;
 
@@ -607,9 +547,7 @@ int main(int argc,char* argv[])
 				for (int j = 0;j < inlier.size();j++) {
 					if (status.at(inlier.at(j)) != '\1' || err.at(inlier.at(j)) > trackerror)continue;
 					in_bvs1.push_back(bearingVectors1.at(inlier.at(j)));//point camera 1 coordinates
-					//in_pt_s1.push_back(R.inverse()*(bearingVectors1.at(inlier.at(j)) - t));//point sensor 1 coordinates
 					in_bvs2.push_back(bearingVectors2.at(inlier.at(j)));//normalized, camera 2 coordinates
-					//in_bvs_n1.push_back(bearingVectors1.at(inlier.at(j)).normalized());//normalized sensor 1 coordiantes
 				}
 				cameraPoseAbsEst_non_lin(in_bvs1, in_bvs2, mot, thres / 2);
 				thres = thres*0.9;

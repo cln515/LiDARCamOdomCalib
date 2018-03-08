@@ -88,7 +88,6 @@ struct matching{
 Vector4d dcm2q(Matrix3d& dcm);
 Matrix3d q2dcm(Vector4d& q);
 Matrix3d axisRot2R(double rx,double ry,double rz);
-Matrix3d ladybug_rot2xyz (double rph[3]);
 void R2axisRot(Matrix3d R,double& rx,double& ry,double& rz);
 
 Matrix4d _6dof2m(_6dof dof);
@@ -96,12 +95,8 @@ _6dof m2_6dof(Matrix4d& m);
 
 Matrix4d getMatrixFlomPly(string fn);
 
-void writePlyHeader(ofstream& ofs,int vertSize,int faceSize);
-void writePlyHeaderRGB(ofstream& ofs,int vertSize,int faceSize);
-void writePlyOnePointRGB(ofstream& ofs,Vector3f& p,unsigned char* rgba);
 
 
-void timeSequencePtx2ply(string in_ptxFn,string out_plyFn);
 
 void omniTrans(double x,double y, double z,double& phi,double& theta);
 void omniTrans(double x,double y, double z,double& phi,double& theta,int height);
@@ -112,11 +107,6 @@ void rgba2int(int& color,unsigned char r,unsigned char g,unsigned char b,unsigne
 int getSubpixelColor(int topLeftColor,int topRightColor,int bottomLeftColor,int bottomRightColor,double dx,double dy);
 void getSubpixelColor(unsigned char* topLeftColor,unsigned char* topRightColor,unsigned char* bottomLeftColor,unsigned char* bottomRightColor,double dx,double dy,unsigned char* rgb);
 
-//double miComputing(double* histogram,int width,int height);
-//double miComputing(double* histogram,int width,int height,int start);
-
-//
-//Matrix4d readVannoPara(string fileName);
 Matrix4d readCPara(string fileName);
 
 bool makeFolder(string folderPath);
