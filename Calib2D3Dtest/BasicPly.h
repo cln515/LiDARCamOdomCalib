@@ -70,9 +70,6 @@ public:
 	void writePlyFileRGB(string fileName);
 	void writePlyFileRGBForMeshlab(string fileName);
 
-//	void convertFAROColoredPtx2Ply(string inFileName, double threshold);//*
-
-
 };
 
 #endif // !REFDATA
