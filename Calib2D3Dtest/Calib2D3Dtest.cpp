@@ -302,7 +302,7 @@ int main(int argc,char* argv[])
 		Matrix4d m2 = readCPara("C:\\data\\calib\\velo2\\tozf.cpara");//ladybug  - panorama range sensor
 		gt = m2.inverse()*m1;
 		cout << m2_6dof(m2) << endl;
-		csvlog << "gt," << m2_6dof(gt) << endl;
+		csvlog << "ground truth," << m2_6dof(gt) << endl;
 	}
 	char szFullPath[MAX_PATH] = { '\0' };
 	char *szFilePart;
