@@ -298,8 +298,8 @@ int main(int argc,char* argv[])
 	//read ground truth
 	Matrix4d gt;
 	if (true) {
-		Matrix4d m1 = getMatrixFlomPly("C:\\data\\calib\\velo2\\tozf.ply");//velodyne  - panorama range sensor
-		Matrix4d m2 = readCPara("C:\\data\\calib\\velo2\\tozf.cpara");//ladybug  - panorama range sensor
+		Matrix4d m1 = getMatrixFlomPly(targetFolder+"\\tozf.ply");//velodyne  - panorama range sensor
+		Matrix4d m2 = readCPara(targetFolder + "\\tozf.cpara");//ladybug  - panorama range sensor
 		gt = m2.inverse()*m1;
 		cout << m2_6dof(m2) << endl;
 		csvlog << "ground truth," << m2_6dof(gt) << endl;
