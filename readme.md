@@ -4,14 +4,14 @@
 ## Description
 This is a LiDAR and camera calibration program using motion.
 
-Paper(https://arxiv.org/abs/1804.05178)
+Paper(https://ieeexplore.ieee.org/abstract/document/8593360)
 
 ## Requirement
-Visual studio 2017
-Eigen
-OpenCV 3.x (https://opencv.org/) (We use 3.30.ver)
-OpenGV (https://laurentkneip.github.io/opengv/)
-Ceres solver (http://ceres-solver.org/)
+- Visual studio 2017
+- Eigen
+- OpenCV 3.x (https://opencv.org/) (We use 3.30.ver)
+- OpenGV (https://laurentkneip.github.io/opengv/)
+- Ceres solver (http://ceres-solver.org/)
 ## Install Dependencies
 
 ### Eigen
@@ -107,9 +107,11 @@ example
     $ path\to\exe path\to\dataset 0
 
 The number of motion is the number of vertical motion and horizontal motion used for calibration. If this number is 8, 16 motions of 8 vertical motions and 8 horizontal motions are used. If number of motion is zero, all motions described in motion.txt are used.
-<separation index> is the separated motions index between vertical and horizontal motion.
+Separation index is the separated motions index between vertical and horizontal motion.
 
 ## License
+
+MIT License
 
 ## Author
 Ryoichi Ishikawa, Computer Vision Laboratory, The University of Tokyo
